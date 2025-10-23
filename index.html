@@ -1,0 +1,2735 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FinTrack - Financial Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Custom styles for aesthetic consistency and scrollbar hiding */
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f3f4f6; /* bg-gray-100 */
+      }
+      /* Hide scrollbar for list containers */
+      .scrollable-list {
+        max-height: 400px;
+        overflow-y: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+      }
+      .scrollable-list::-webkit-scrollbar {
+        /* Chrome, Safari */
+        display: none;
+      }
+      .tab-btn {
+        transition: all 0.2s ease-in-out;
+        border-bottom-width: 2px;
+        /* Removed padding-bottom to allow py-3 to control vertical padding */
+      }
+      .input-field {
+        border-radius: 0.5rem;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db; /* border-gray-300 */
+        width: 100%;
+      }
+      /* Custom utility for the animation on mount */
+      .fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      @keyframes fadeInUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body class="p-2 md:p-8">
+    <div
+      class="max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden"
+    >
+      <header class="p-4 bg-indigo-700 text-white">
+        <h1 class="text-2xl font-extrabold">FinTrack</h1>
+        <p class="text-indigo-200 text-sm">Local Financial Planner</p>
+        <div id="message-box" class="mt-2 hidden"></div>
+      </header>
+
+      <nav class="flex justify-around border-b border-gray-200 bg-gray-50 p-0">
+        <button
+          data-tab="overview"
+          class="tab-btn font-bold py-3 text-center w-full focus:outline-none border-indigo-600 text-indigo-700 hover:bg-gray-100 flex items-center justify-center space-x-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l-2-2m0 0l-7-7-7 7m14 0v10a1 1 0 01-1 1h-3M10 20v-6a2 2 0 012-2h0a2 2 0 012 2v6"
+            />
+          </svg>
+          <span class="text-sm sm:text-base">Home</span>
+        </button>
+        <button
+          data-tab="transactions"
+          class="tab-btn font-bold py-3 text-center w-full focus:outline-none border-transparent text-gray-600 hover:bg-gray-100 flex items-center justify-center space-x-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5l3-3 3 3m-4 5h4m-4 4h4"
+            />
+          </svg>
+          <span class="text-sm sm:text-base">Logs</span>
+        </button>
+        <button
+          data-tab="budget"
+          class="tab-btn font-bold py-3 text-center w-full focus:outline-none border-transparent text-gray-600 hover:bg-gray-100 flex items-center justify-center space-x-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M16 11V7a4 4 0 00-8 0v4m-4 8h16a2 2 0 002-2v-4a2 2 0 00-2-2H4a2 2 0 00-2 2v4a2 2 0 002 2zm13-8a.5.5 0 100-1 .5.5 0 000 1z"
+            />
+          </svg>
+          <span class="text-sm sm:text-base">Meal</span>
+        </button>
+        <button
+          data-tab="investments"
+          class="tab-btn font-bold py-3 text-center w-full focus:outline-none border-transparent text-gray-600 hover:bg-gray-100 flex items-center justify-center space-x-1"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M13 7h6m0 0v6m0-6L11 2M5 18l7-7 4-4m-12 4L12 6"
+            />
+          </svg>
+          <span class="text-sm sm:text-base">Stake</span>
+        </button>
+      </nav>
+      <main class="p-4">
+        <section id="overview-content" class="fade-in-up">
+          <h2 class="text-xl font-bold text-gray-800 mb-3">Financial Health</h2>
+
+          <div
+            class="bg-indigo-100 border border-indigo-200 rounded-xl p-3 mb-4 shadow-md"
+          >
+            <h3
+              class="text-lg font-bold text-indigo-800 mb-1 flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 8c1.657 0 3 .895 3 2s-1.343 2-3 2v5m0-5h6m-3-2c1.657 0 3-.895 3-2s-1.343-2-3-2m0 0V3m0 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2h4a2 2 0 012 2z"
+                />
+              </svg>
+              Net Worth
+            </h3>
+            <p
+              id="net-worth-value"
+              class="text-3xl font-extrabold text-indigo-700"
+            >
+              ₹0.00
+            </p>
+            <p class="text-xs text-indigo-600">
+              (Assets - Liabilities = What you own)
+            </p>
+          </div>
+
+          <div
+            class="bg-yellow-100 border border-yellow-200 rounded-xl p-3 mb-4 shadow-md"
+          >
+            <h3
+              class="text-lg font-bold text-yellow-800 mb-2 flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2 text-yellow-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+              Financial Goal
+            </h3>
+
+            <p
+              id="goal-name-display"
+              class="text-base font-semibold text-yellow-700 mb-1"
+            >
+              No Goal Set
+            </p>
+            <p
+              id="goal-value-display"
+              class="text-2xl font-extrabold text-yellow-700"
+            >
+              ₹0.00
+            </p>
+            <div
+              id="goal-comparison"
+              class="text-sm mt-2 text-yellow-900"
+            ></div>
+
+            <button
+              id="set-goal-btn"
+              class="mt-3 py-1 px-3 border border-transparent rounded-lg text-xs font-medium text-white bg-yellow-600 hover:bg-yellow-700 transition"
+            >
+              Set/Edit Goal
+            </button>
+          </div>
+
+          <div
+            id="goal-form-container"
+            class="space-y-4 p-3 border rounded-xl shadow-md mb-4 hidden"
+          >
+            <h3 class="text-base font-semibold text-gray-700">
+              Set Financial Goal (Target Net Worth)
+            </h3>
+            <form id="financial-goal-form" class="space-y-3">
+              <div>
+                <label
+                  for="goal-name-input"
+                  class="block text-sm font-medium text-gray-700"
+                  >Goal Name</label
+                >
+
+                <input
+                  type="text"
+                  id="goal-name-input"
+                  class="input-field"
+                  placeholder="e.g., Retirement Target"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="goal-amount-input"
+                  class="block text-sm font-medium text-gray-700"
+                  >Target Net Worth Amount</label
+                >
+                <input
+                  type="number"
+                  step="0.01"
+                  id="goal-amount-input"
+                  class="input-field"
+                  placeholder="e.g., 50000.00"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-150"
+              >
+                Save Goal
+              </button>
+            </form>
+          </div>
+
+          <div
+            class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 mb-4 shadow-md"
+          >
+            <h3
+              class="text-lg font-bold text-indigo-800 mb-2 flex items-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5 mr-2 text-indigo-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              Work-to-Buy Calculator
+            </h3>
+
+            <div
+              id="salary-setup-container"
+              class="space-y-3 p-3 border rounded-lg bg-white mb-3"
+            >
+              <p class="text-sm font-semibold text-gray-700">
+                Define Your Salary:
+              </p>
+              <div class="grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <label
+                    for="input-monthly-salary"
+                    class="block text-xs font-medium text-gray-500"
+                    >Monthly Salary (₹)</label
+                  >
+                  <input
+                    type="number"
+                    step="0.01"
+                    id="input-monthly-salary"
+                    class="input-field py-1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="input-working-days"
+                    class="block text-xs font-medium text-gray-500"
+                    >Days/Month</label
+                  >
+                  <input
+                    type="number"
+                    step="1"
+                    id="input-working-days"
+                    class="input-field py-1"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    for="input-working-hours"
+                    class="block text-xs font-medium text-gray-500"
+                    >Hours/Day</label
+                  >
+                  <input
+                    type="number"
+                    step="0.5"
+                    id="input-working-hours"
+                    class="input-field py-1"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="flex justify-between items-center bg-indigo-100 p-2 rounded-lg mb-3"
+            >
+              <p class="text-sm font-medium text-indigo-700">
+                Calculated Hourly Wage:
+              </p>
+              <p
+                id="hourly-wage-display"
+                class="text-xl font-extrabold text-indigo-800"
+              >
+                ₹0.00/hr
+              </p>
+            </div>
+
+            <div class="space-y-3 p-3 border rounded-lg bg-white">
+              <p class="text-sm font-semibold text-gray-700">
+                Calculate Work Time Needed:
+              </p>
+              <label
+                for="input-product-cost"
+                class="block text-xs font-medium text-gray-500"
+                >Product Cost (₹)</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                id="input-product-cost"
+                class="input-field py-1 mb-3"
+                placeholder="e.g., 5000.00"
+              />
+
+              <div class="flex justify-between items-center mt-2">
+                <p class="text-base font-medium text-gray-700">
+                  Hours Needed to Earn:
+                </p>
+                <p
+                  id="hours-needed-display"
+                  class="text-2xl font-extrabold text-indigo-700"
+                >
+                  0.00 hrs
+                </p>
+              </div>
+              <p
+                id="days-needed-display"
+                class="text-xs text-gray-500 text-right"
+              ></p>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div
+              class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm"
+            >
+              <p class="text-sm font-medium text-gray-500 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m0 0l2.5-2.5M7 15h10a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v4a2 2 0 002 2z"
+                  />
+                </svg>
+                Current Balance
+              </p>
+
+              <p
+                id="current-balance-display"
+                class="text-xl font-bold text-gray-900"
+              >
+                ₹0.00
+              </p>
+            </div>
+
+            <div
+              class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm"
+            >
+              <p class="text-sm font-medium text-gray-500 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-4 w-4 mr-1 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M16 11V7a4 4 0 00-8 0v4m-4 8h16a2 2 0 002-2v-4a2 2 0 00-2-2H4a2 2 0 00-2 2v4a2 2 0 002 2zm13-8a.5.5 0 100-1 .5.5 0 000 1z"
+                  />
+                </svg>
+                Savings Balance
+              </p>
+              <p
+                id="savings-balance-display"
+                class="text-xl font-bold text-gray-900"
+              >
+                ₹0.00
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <div
+              class="bg-green-50 border border-green-200 rounded-xl p-3 shadow-sm"
+            >
+              <p class="text-xs font-medium text-green-700 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 10l7-7m0 0l7 7m-7-7v18"
+                  />
+                </svg>
+                Today's Income
+              </p>
+              <p
+                id="daily-income-display"
+                class="text-lg font-bold text-green-600"
+              >
+                ₹0.00
+              </p>
+            </div>
+            <div
+              class="bg-red-50 border border-red-200 rounded-xl p-3 shadow-sm"
+            >
+              <p class="text-xs font-medium text-red-700 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                  />
+                </svg>
+                Today's Expenses
+              </p>
+              <p
+                id="daily-expenses-display"
+                class="text-lg font-bold text-red-600"
+              >
+                ₹0.00
+              </p>
+            </div>
+            <div
+              class="bg-green-100 border border-green-300 rounded-xl p-3 shadow-md"
+            >
+              <p class="text-xs font-medium text-green-800 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M7 12l3 3 7-7"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 12h14"
+                  />
+                </svg>
+                Month Income
+              </p>
+              <p
+                id="monthly-income-display"
+                class="text-lg font-bold text-green-700"
+              >
+                ₹0.00
+              </p>
+            </div>
+            <div
+              class="bg-red-100 border border-red-300 rounded-xl p-3 shadow-md"
+            >
+              <p class="text-xs font-medium text-red-800 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-3 w-3 mr-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M7 12l3 3 7-7"
+                  />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M5 12h14"
+                  />
+                </svg>
+                Month Expenses
+              </p>
+              <p
+                id="monthly-expenses-display"
+                class="text-lg font-bold text-red-700"
+              >
+                ₹0.00
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-3 shadow-lg border border-gray-200 mb-4"
+          >
+            <div class="flex justify-between items-center mb-3">
+              <button
+                id="prev-month-btn"
+                class="p-1 rounded-full text-indigo-600 hover:bg-indigo-50 transition"
+                aria-label="Previous Month"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <h3
+                class="text-lg font-bold text-gray-800"
+                id="calendar-header-month"
+              >
+                Current Month
+              </h3>
+              <button
+                id="next-month-btn"
+                class="p-1 rounded-full text-indigo-600 hover:bg-indigo-50 transition"
+                aria-label="Next Month"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+            <div
+              id="calendar-grid"
+              class="grid grid-cols-7 gap-1 text-center text-xs"
+            ></div>
+          </div>
+
+          <div
+            class="bg-white rounded-xl p-3 shadow-lg border border-gray-200 mb-4"
+          >
+            <h3 class="text-lg font-bold text-gray-800 mb-3">
+              Budget vs. Expenses (This Month)
+            </h3>
+            <div
+              id="budget-exceeded-warning"
+              class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-3 mb-4 rounded-md"
+              role="alert"
+            >
+              <p class="font-bold">Budget Exceeded!</p>
+              <p class="text-sm">
+                You have spent more than your monthly budget. Review your
+                spending.
+              </p>
+            </div>
+            <div class="relative h-56">
+              <canvas id="budget-chart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="transactions-content" class="hidden fade-in-up">
+          <h2 class="text-xl font-bold text-gray-800 mb-3">
+            Record New Transaction
+          </h2>
+
+          <form
+            id="transaction-form"
+            class="space-y-3 p-3 border rounded-xl shadow-md mb-4"
+          >
+            <div>
+              <label
+                for="transaction-amount"
+                class="block text-sm font-medium text-gray-700"
+                >Amount</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                id="transaction-amount"
+                class="input-field"
+                placeholder="e.g., 50.00"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                for="transaction-type"
+                class="block text-sm font-medium text-gray-700"
+                >Type</label
+              >
+
+              <select id="transaction-type" class="input-field" required>
+                <option value="expense">Expense (From Current Balance)</option>
+                <option value="income">Income (To Current Balance)</option>
+              </select>
+            </div>
+
+            <div>
+              <label
+                for="transaction-category"
+                class="block text-sm font-medium text-gray-700"
+                >Category</label
+              >
+              <input
+                type="text"
+                id="transaction-category"
+                class="input-field"
+                placeholder="e.g., Groceries, Salary, Rent"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                for="transaction-date"
+                class="block text-sm font-medium text-gray-700"
+                >Date</label
+              >
+              <input
+                type="date"
+                id="transaction-date"
+                class="input-field"
+                value=""
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150"
+            >
+              Add Transaction
+            </button>
+          </form>
+
+          <h3 class="text-xl font-bold text-gray-800 mb-3">
+            All Transaction History
+          </h3>
+          <div
+            id="transactions-list-container"
+            class="scrollable-list bg-gray-50 p-3 rounded-xl border border-gray-200"
+          >
+            <p class="text-center text-gray-500">
+              No transactions recorded yet.
+            </p>
+          </div>
+        </section>
+
+        <section id="budget-content" class="hidden fade-in-up">
+          <h2 class="text-xl font-bold text-gray-800 mb-3">
+            Budget Management
+          </h2>
+
+          <form
+            id="budget-form"
+            class="space-y-3 p-3 border rounded-xl shadow-md mb-4"
+          >
+            <h3 class="text-lg font-semibold text-gray-700">
+              Set Monthly Budget
+            </h3>
+            <div>
+              <label
+                for="monthly-budget-input"
+                class="block text-sm font-medium text-gray-700"
+                >Target Expense Budget</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                id="monthly-budget-input"
+                class="input-field"
+                placeholder="e.g., 2000.00"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150"
+            >
+              Set Budget
+            </button>
+          </form>
+
+          <h2 class="text-xl font-bold text-gray-800 mb-3">Budget History</h2>
+          <div
+            id="budget-history-list"
+            class="scrollable-list bg-gray-50 p-3 rounded-xl border border-gray-200 mb-4"
+          >
+            <p class="text-center text-gray-500">No budget history yet.</p>
+          </div>
+
+          <div class="p-3 border rounded-xl shadow-md mb-4 bg-blue-50">
+            <h3 class="text-lg font-semibold text-gray-700 mb-2">
+              Savings Account Management
+            </h3>
+            <p class="text-sm text-gray-600 mb-3">
+              Your current <span class="font-bold">Savings Balance:</span>
+              <span
+                id="current-savings-balance-display-2"
+                class="font-bold text-lg text-blue-700"
+                >₹0.00</span
+              >.
+            </p>
+
+            <form id="savings-management-form" class="space-y-3">
+              <div>
+                <label
+                  for="savings-transfer-amount"
+                  class="block text-sm font-medium text-gray-700"
+                  >Transfer Amount</label
+                >
+
+                <input
+                  type="number"
+                  step="0.01"
+                  id="savings-transfer-amount"
+                  class="input-field"
+                  placeholder="e.g., 250.00"
+                  required
+                />
+              </div>
+
+              <div>
+                <label
+                  for="savings-transfer-type"
+                  class="block text-sm font-medium text-gray-700"
+                  >Action</label
+                >
+                <select id="savings-transfer-type" class="input-field" required>
+                  <option value="deposit">
+                    Deposit to Savings (from Current Balance)
+                  </option>
+                  <option value="withdrawal">
+                    Withdrawal from Savings (to Current Balance)
+                  </option>
+                  <option value="payLiability">
+                    Withdrawal to Pay Liability
+                  </option>
+                </select>
+              </div>
+
+              <div
+                id="liability-selection-group"
+                class="hidden p-3 border border-red-200 rounded-lg bg-red-50"
+              >
+                <label
+                  for="liability-to-pay"
+                  class="block text-sm font-medium text-gray-700"
+                  >Select Liability to Pay</label
+                >
+                <select id="liability-to-pay" class="input-field mt-1">
+                  <option value="">-- No Liabilities Available --</option>
+                </select>
+                <p class="text-xs text-red-700 mt-2">
+                  Funds are pulled directly from Savings to cover the payment
+                  and the liability amount is reduced.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                id="savings-transfer-btn"
+                class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150"
+              >
+                Execute Transfer
+              </button>
+            </form>
+          </div>
+
+          <h2 class="text-xl font-bold text-gray-800 mb-3">
+            Liabilities Tracking (for Net Worth)
+          </h2>
+          <form
+            id="liability-form"
+            class="space-y-3 p-3 border rounded-xl shadow-md mb-4 bg-red-50"
+          >
+            <h3 class="text-lg font-semibold text-gray-700">
+              Add New Liability (Debt/Loan Received)
+            </h3>
+            <p class="text-xs text-gray-600">
+              **NOTE:** If this is a new loan (cash received), your Current
+              Balance will increase to reflect the funds received, keeping Net
+              Worth stable. If this is pre-existing debt, please enter only the
+              debt amount and you can manually correct your Current Balance on
+              the Transaction tab.
+            </p>
+            <div>
+              <label
+                for="liability-name"
+                class="block text-sm font-medium text-gray-700"
+                >Name</label
+              >
+              <input
+                type="text"
+                id="liability-name"
+                class="input-field"
+                placeholder="e.g., Credit Card Debt"
+                required
+              />
+            </div>
+            <div>
+              <label
+                for="liability-amount"
+                class="block text-sm font-medium text-gray-700"
+                >Total Amount Owed</label
+              >
+              <input
+                type="number"
+                step="0.01"
+                id="liability-amount"
+                class="input-field"
+                placeholder="e.g., 5000.00"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150"
+            >
+              Add Liability
+            </button>
+          </form>
+
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Your Liabilities</h3>
+          <div
+            id="liabilities-list-container"
+            class="scrollable-list bg-gray-50 p-3 rounded-xl border border-gray-200"
+          >
+            <p class="text-center text-gray-500">
+              No liabilities recorded yet.
+            </p>
+          </div>
+        </section>
+
+        <section id="investments-content" class="hidden fade-in-up">
+          <h2 class="text-xl font-bold text-gray-800 mb-3">
+            Investment Portfolio
+          </h2>
+
+          <div
+            class="bg-white rounded-xl p-3 shadow-lg border border-gray-200 mb-4"
+          >
+            <h3 class="text-lg font-bold text-gray-800 mb-3">
+              Investment Comparison (Maturity Value)
+            </h3>
+            <div class="relative h-72">
+              <canvas id="investment-chart"></canvas>
+            </div>
+          </div>
+
+          <form
+            id="investment-form"
+            class="space-y-3 p-3 border rounded-xl shadow-md mb-4 bg-yellow-50"
+          >
+            <h3 class="text-lg font-semibold text-gray-700">
+              Add New Investment
+            </h3>
+            <p class="text-xs text-gray-600">
+              The **Principal Amount** will be deducted from your **Current
+              Balance** and recorded as an expense transaction.
+            </p>
+
+            <div>
+              <label
+                for="investment-name"
+                class="block text-sm font-medium text-gray-700"
+                >Investment Name</label
+              >
+
+              <input
+                type="text"
+                id="investment-name"
+                class="input-field"
+                placeholder="e.g., Emergency FD, Growth Stock"
+                required
+              />
+            </div>
+
+            <div>
+              <label
+                for="investment-instrument"
+                class="block text-sm font-medium text-gray-700"
+                >Instrument Type</label
+              >
+              <select id="investment-instrument" class="input-field" required>
+                <option value="FD">Fixed Deposit (FD)</option>
+                <option value="Saving">Savings Account</option>
+                <option value="Stock">Stock/Equity</option>
+              </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  for="investment-amount"
+                  class="block text-sm font-medium text-gray-700"
+                  >Principal Amount</label
+                >
+                <input
+                  type="number"
+                  step="0.01"
+                  id="investment-amount"
+                  class="input-field"
+                  placeholder="e.g., 1000.00"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="investment-rate"
+                  class="block text-sm font-medium text-gray-700"
+                  >Annual Interest Rate (%)</label
+                >
+                <input
+                  type="number"
+                  step="0.01"
+                  id="investment-rate"
+                  class="input-field"
+                  placeholder="e.g., 6.5"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  for="investment-period-amount"
+                  class="block text-sm font-medium text-gray-700"
+                  >Period Amount</label
+                >
+                <input
+                  type="number"
+                  step="0.1"
+                  id="investment-period-amount"
+                  class="input-field"
+                  placeholder="e.g., 5"
+                  required
+                />
+              </div>
+              <div>
+                <label
+                  for="investment-period-unit"
+                  class="block text-sm font-medium text-gray-700"
+                  >Period Unit</label
+                >
+
+                <select
+                  id="investment-period-unit"
+                  class="input-field"
+                  required
+                >
+                  <option value="years">Years</option>
+                  <option value="months">Months</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="compounding-frequency-group" class="hidden">
+              <label
+                for="compounding-frequency"
+                class="block text-sm font-medium text-gray-700"
+                >Interest Compounding Frequency</label
+              >
+              <select id="compounding-frequency" class="input-field">
+                <option value="yearly">Yearly</option>
+
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="daily">Daily</option>
+              </select>
+            </div>
+
+            <div id="interest-type-group">
+              <label
+                for="interest-type"
+                class="block text-sm font-medium text-gray-700"
+                >Interest Type</label
+              >
+              <select id="interest-type" class="input-field" required>
+                <option value="simple">Simple Interest</option>
+                <option value="compound">Compound Interest</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              class="w-full py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition duration-150"
+            >
+              Calculate & Add Investment
+            </button>
+          </form>
+
+          <h3 class="text-xl font-bold text-gray-800 mb-3">Your Investments</h3>
+          <div
+            id="investments-list-container"
+            class="scrollable-list space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-200"
+          >
+            <p class="text-center text-gray-500">
+              No investments recorded yet.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      // --- CORE DATA & UTILITIES ---
+
+      // Global state, loaded from localStorage
+      let settings = {};
+      let activeTab = "overview";
+      let budgetChartInstance = null;
+      let investmentChartInstance = null;
+      // NEW CHART INSTANCE
+      let currentCalendarDate = new Date();
+      const STORAGE_KEY = "fintrackSettings";
+      /**
+       * Displays a temporary message in the message box.
+       */
+      const showMessage = (message, type = "success") => {
+        const box = document.getElementById("message-box");
+        box.classList.remove("hidden", "bg-red-500", "bg-green-500");
+
+        const bgColor = type === "error" ? "bg-red-500" : "bg-green-500";
+        box.className = `mt-2 p-3 rounded-lg text-white font-medium ${bgColor}`;
+        box.textContent = message;
+        setTimeout(() => {
+          box.classList.add("hidden");
+        }, 5000);
+      };
+
+      /**
+       * Loads settings from localStorage or initializes default values.
+       */
+      const loadSettings = () => {
+        const storedSettings = localStorage.getItem(STORAGE_KEY);
+        if (storedSettings) {
+          settings = JSON.parse(storedSettings);
+        } else {
+          settings = {
+            currentBalance: 0,
+            savingsBalance: 0,
+            transactions: [], // {id, type: 'income'/'expense'/...special_types, amount, category, date, notes}
+            liabilities: [], // {id, name, amount}
+            monthlyBudget: 0,
+
+            investments: [],
+            lastResetDate: new Date().toISOString(), // Used to track monthly refresh
+            financialGoal: {
+              name: "Financial Independence",
+              amount: 0,
+              isSet: false,
+            },
+            budgetHistory: [],
+            // NEW FIELDS FOR WORK-TO-BUY CALCULATOR
+            salarySettings: {
+              monthlySalary: 0,
+              workingDaysPerMonth: 20, // Default to 20 days
+              workingHoursPerDay: 8, // Default to 8 hours
+            },
+          };
+        }
+        // Ensure new fields exist for existing users
+        settings.liabilities = settings.liabilities || [];
+        settings.monthlyBudget = settings.monthlyBudget || 0;
+        settings.investments = settings.investments || [];
+        settings.lastResetDate =
+          settings.lastResetDate || new Date().toISOString();
+        settings.financialGoal = settings.financialGoal || {
+          name: "Financial Independence",
+          amount: 0,
+          isSet: false,
+        };
+        settings.budgetHistory = settings.budgetHistory || [];
+        // Ensure salary settings exist
+        settings.salarySettings = settings.salarySettings || {
+          monthlySalary: 0,
+          workingDaysPerMonth: 20,
+          workingHoursPerDay: 8,
+        };
+      };
+      /**
+       * Updates settings in localStorage and triggers a re-render.
+       */
+      const updateSettings = async (newSettings) => {
+        settings = { ...settings, ...newSettings };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+        window.renderApp();
+      };
+
+      /**
+       * Adds a standard transaction record to the transactions array.
+       * Note: This function only adds the record, it does NOT change the balance.
+       */
+      const addTransactionRecord = (
+        type,
+        amount,
+        category,
+        notes = "",
+        date = formatDate(new Date())
+      ) => {
+        const newRecord = {
+          id: Date.now() + Math.random(), // Use timestamp + random for high chance of unique ID
+          type, // 'income', 'expense', 'transfer_to_savings', 'transfer_from_savings', 'liability_payment', 'investment_purchase', 'transfer_surplus'
+          amount: parseFloat(amount),
+
+          category,
+          date,
+          notes,
+        };
+        settings.transactions.push(newRecord);
+      };
+
+      /**
+       * Formats a number as currency (INDIAN RUPEE - UPDATED).
+       */
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat("en-IN", {
+          style: "currency",
+          currency: "INR",
+        }).format(amount);
+      };
+
+      /**
+       * Formats a date object into YYYY-MM-DD string.
+       */
+      const formatDate = (date) => {
+        return date.toISOString().split("T")[0];
+      };
+
+      /**
+       * Gets the Month and Year string for filtering/history (e.g., "October 2025").
+       */
+      const getMonthYear = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+      };
+
+      // --- CALCULATIONS ---
+
+      /**
+       * Calculates the hourly wage based on stored settings. (NEW)
+       * Returns the hourly rate (number).
+       */
+      const calculateHourlyWage = () => {
+        const { monthlySalary, workingDaysPerMonth, workingHoursPerDay } =
+          settings.salarySettings;
+        if (
+          monthlySalary <= 0 ||
+          workingDaysPerMonth <= 0 ||
+          workingHoursPerDay <= 0
+        ) {
+          return 0;
+        }
+        const totalWorkingHours = workingDaysPerMonth * workingHoursPerDay;
+        return monthlySalary / totalWorkingHours;
+      };
+
+      /**
+       * List of transaction types that should be EXCLUDED from income/expense totals (since they are inter-account transfers or assets/debt payments).
+       */
+      const EXCLUDED_TYPES = [
+        "transfer_surplus",
+        "transfer_to_savings",
+        "transfer_from_savings",
+        "liability_payment",
+        "investment_purchase",
+      ];
+      /**
+       * Calculates total liabilities.
+       */
+      const getTotalLiabilities = () => {
+        return settings.liabilities.reduce((sum, l) => sum + l.amount, 0);
+      };
+
+      /**
+       * Calculates the overall Net Worth.
+       */
+      const calculateNetWorth = () => {
+        const totalAssets = settings.currentBalance + settings.savingsBalance;
+        const totalLiabilities = getTotalLiabilities();
+        return totalAssets - totalLiabilities;
+      };
+
+      /**
+       * Calculates totals (income, expenses) for a specific month or period, EXCLUDING transfer types.
+       * Returns { income: number, expenses: number }
+       */
+      const getCurrentPeriodTotals = (
+        period = "month",
+        targetDate = new Date()
+      ) => {
+        let filterFn;
+        if (period === "day") {
+          const today = formatDate(targetDate);
+          filterFn = (t) => t.date === today;
+        } else if (period === "month") {
+          const currentMonthYear =
+            targetDate.getMonth() + "/" + targetDate.getFullYear();
+          filterFn = (t) => {
+            const transactionDate = new Date(t.date + "T00:00:00");
+            const transactionMonthYear =
+              transactionDate.getMonth() + "/" + transactionDate.getFullYear();
+            return transactionMonthYear === currentMonthYear;
+          };
+        } else {
+          // Default to all transactions if period is something else
+          filterFn = () => true;
+        }
+
+        const filteredTransactions = settings.transactions.filter(filterFn);
+        const totals = filteredTransactions.reduce(
+          (acc, t) => {
+            // EXCLUDE special transfer types from the totals (NEW LOGIC)
+            if (EXCLUDED_TYPES.includes(t.type)) {
+              return acc;
+            }
+
+            const amount = parseFloat(t.amount);
+            if (t.type === "income") {
+              acc.income += amount;
+            } else if (t.type === "expense") {
+              acc.expenses += amount;
+            }
+            return acc;
+          },
+          { income: 0, expenses: 0 }
+        );
+        return totals;
+      };
+
+      /**
+       * Calculates the future value (maturity amount) of an investment.
+       * A = P * (1 + r/n)^(n*t) where t is in years.
+       */
+      const calculateMaturityValue = (
+        principal,
+        annualRate,
+        periodYears,
+        interestType,
+        compoundingFreq = "yearly"
+      ) => {
+        const P = principal;
+        const r = annualRate / 100;
+        const t = periodYears;
+        if (interestType === "simple") {
+          // Simple Interest: A = P * (1 + r * t)
+          return P * (1 + r * t);
+        } else if (interestType === "compound") {
+          let n;
+          // Number of times interest is compounded per year
+          switch (compoundingFreq) {
+            case "daily":
+              n = 365;
+              break;
+            case "weekly":
+              n = 52;
+              break;
+            case "monthly":
+              n = 12;
+              break;
+            case "yearly":
+            default:
+              n = 1;
+              break;
+          }
+
+          // Compound Interest: A = P * (1 + r/n)^(n*t)
+          return P * Math.pow(1 + r / n, n * t);
+        }
+        return P;
+      };
+
+      /**
+       * Checks if a monthly reset (surplus transfer, budget reset) is due
+       * based on lastResetDate and performs it if necessary.
+       */
+      const checkAndPerformMonthlyReset = async () => {
+        const now = new Date();
+        const lastReset = new Date(settings.lastResetDate);
+
+        const isSameMonth =
+          now.getMonth() === lastReset.getMonth() &&
+          now.getFullYear() === lastReset.getFullYear();
+        if (isSameMonth) {
+          return;
+        }
+
+        // 1. Determine the Month to Calculate Surplus From (the month that just ended)
+        const prevMonthDate = new Date(now);
+        prevMonthDate.setDate(1); // Set to 1st of current month
+        prevMonthDate.setHours(-1); // Roll back to last day of previous month
+        const prevMonthDateString = formatDate(prevMonthDate);
+
+        // 2. Calculate Previous Month's Surplus/Totals for Transfer & History
+        // Use a temporary function to get total income/expense (excluding special transfers) for history logging
+        const getPreviousMonthTotals = () => {
+          const prevMonthMonth = prevMonthDate.getMonth();
+          const prevMonthYear = prevMonthDate.getFullYear();
+          return settings.transactions
+            .filter((t) => {
+              const tDate = new Date(t.date + "T00:00:00");
+              return (
+                tDate.getMonth() === prevMonthMonth &&
+                tDate.getFullYear() === prevMonthYear
+              );
+            })
+            .reduce(
+              (acc, t) => {
+                // Only count regular income/expense for surplus calculation
+                if (t.type === "income" && !EXCLUDED_TYPES.includes(t.type)) {
+                  acc.income += parseFloat(t.amount);
+                } else if (
+                  t.type === "expense" &&
+                  !EXCLUDED_TYPES.includes(t.type)
+                ) {
+                  acc.expenses += parseFloat(t.amount);
+                }
+                return acc;
+              },
+              { income: 0, expenses: 0 }
+            );
+        };
+        const { income: prevMonthIncome, expenses: prevMonthExpenses } =
+          getPreviousMonthTotals();
+        const surplus = prevMonthIncome - prevMonthExpenses;
+
+        let newSettings = {
+          lastResetDate: now.toISOString(), // Update reset date
+        };
+
+        // 3. Store Budget History
+        if (settings.monthlyBudget > 0 || prevMonthExpenses > 0) {
+          const monthYear = getMonthYear(prevMonthDate.toISOString());
+          const historyEntry = {
+            id: Date.now(),
+            month: monthYear,
+            budget: settings.monthlyBudget,
+            expenses: prevMonthExpenses,
+            exceeded:
+              settings.monthlyBudget > 0 &&
+              prevMonthExpenses > settings.monthlyBudget,
+          };
+          newSettings.budgetHistory = [historyEntry, ...settings.budgetHistory];
+        }
+
+        // 4. Perform Surplus Transfer (Income - Expenses -> Savings)
+        if (surplus > 0) {
+          // Transfer logic: Current Balance must cover the calculated surplus amount
+          const transferAmount = Math.min(surplus, settings.currentBalance);
+          if (transferAmount > 0) {
+            // Deduct from old current balance, add to old savings balance
+            newSettings.currentBalance =
+              settings.currentBalance - transferAmount;
+            newSettings.savingsBalance =
+              settings.savingsBalance + transferAmount;
+
+            // ADD TRANSACTION RECORD (NEW)
+            addTransactionRecord(
+              "transfer_surplus",
+              transferAmount,
+              "Monthly Surplus",
+              "Automated transfer of excess income to savings from previous month.",
+              formatDate(now) // Use today's date for the record date
+            );
+            showMessage(
+              `✅ Monthly Reset: ${formatCurrency(
+                transferAmount
+              )} excess income from ${prevMonthDate.toLocaleString("en-US", {
+                month: "long",
+              })} was moved to Savings and recorded!`
+            );
+          } else {
+            showMessage(
+              `⚠️ Monthly Reset: ${prevMonthDate.toLocaleString("en-US", {
+                month: "long",
+              })} had a surplus, but Current Balance is too low for transfer.`
+            );
+          }
+        } else if (surplus < 0) {
+          showMessage(
+            `⚠️ Monthly Reset: ${prevMonthDate.toLocaleString("en-US", {
+              month: "long",
+            })} had a deficit of ${formatCurrency(
+              surplus * -1
+            )}. No transfer to Savings.`
+          );
+        }
+
+        // 5. Monthly Data Refresh: Reset monthly budget to 0
+        newSettings.monthlyBudget = 0;
+        await updateSettings(newSettings);
+      };
+
+      // --- DELETION LOGIC (NEW) ---
+
+      /**
+       * Deletes a transaction and reverses its effect on account balances.
+       */
+      const deleteTransaction = async (id) => {
+        const transaction = settings.transactions.find((t) => t.id == id);
+        if (!transaction) return;
+
+        let { currentBalance, savingsBalance } = settings;
+        const amount = parseFloat(transaction.amount);
+
+        // Reverse the effect on the balances based on transaction type
+        switch (transaction.type) {
+          case "income":
+            currentBalance -= amount; // Revert income
+            break;
+          case "expense":
+            currentBalance += amount; // Revert expense
+            break;
+          case "transfer_to_savings":
+            currentBalance += amount; // Revert current balance deduction
+            savingsBalance -= amount; // Revert savings deposit
+            break;
+          case "transfer_from_savings":
+            currentBalance -= amount; // Revert current balance deposit
+            savingsBalance += amount; // Revert savings deduction
+            break;
+          // Prevent simple deletion for complex types to avoid corrupting liability/investment data
+          case "transfer_surplus":
+          case "liability_payment":
+          case "investment_purchase":
+            showMessage(
+              `Cannot directly delete a ${transaction.type} record. Delete the associated Investment or Liability instead to automatically reverse associated records.`,
+              "error"
+            );
+            return;
+          default:
+            // Handle unknown types safely (though none should exist)
+            showMessage("Cannot revert unknown transaction type.", "error");
+            return;
+        }
+
+        const newTransactions = settings.transactions.filter((t) => t.id != id);
+
+        await updateSettings({
+          currentBalance,
+          savingsBalance,
+          transactions: newTransactions,
+        });
+        showMessage(`✅ Transaction deleted and balances reverted.`, "success");
+      };
+
+      /**
+       * Deletes an investment, refunds the principal, and updates balances.
+       */
+      const deleteInvestment = async (id) => {
+        const investment = settings.investments.find((i) => i.id == id);
+        if (!investment) return;
+
+        const refundAmount = investment.principal; // The initial cost
+
+        // 1. Remove the investment from the list
+        const newInvestments = settings.investments.filter((i) => i.id != id);
+
+        // 2. Remove the associated 'investment_purchase' transaction (optional, but good for cleanup)
+        const newTransactions = settings.transactions.filter(
+          (t) =>
+            !(
+              t.type === "investment_purchase" &&
+              t.notes.includes(investment.name) &&
+              t.amount === investment.principal
+            )
+        );
+
+        // 3. Refund the principal amount to Current Balance (reversing the initial expense)
+        const newCurrentBalance = settings.currentBalance + refundAmount;
+
+        // 4. Log a new transaction for the 'sale/refund' as an income
+        addTransactionRecord(
+          "income",
+          refundAmount,
+          "Investment Sale/Refund",
+          `Refund received from liquidating investment: ${investment.name}`,
+          formatDate(new Date())
+        );
+
+        await updateSettings({
+          currentBalance: newCurrentBalance,
+          investments: newInvestments,
+          transactions: newTransactions,
+        });
+
+        showMessage(
+          `✅ Investment "${
+            investment.name
+          }" deleted. Principal amount (${formatCurrency(
+            refundAmount
+          )}) refunded to Current Balance.`,
+          "success"
+        );
+      };
+
+      // --- CALENDAR LOGIC ---
+
+      /**
+       * Calculates the net flow (income - expense) for every day in the target month.
+       * Note: This intentionally includes standard income/expense ONLY, excluding transfers.
+       * Returns an object mapping day number to net flow amount: {1: 150.00, 5: -50.00, ...}
+       */
+      const getDailyNetFlows = (targetDate) => {
+        const flows = {};
+        const targetMonth = targetDate.getMonth();
+        const targetYear = targetDate.getFullYear();
+        settings.transactions.forEach((t) => {
+          // Note: Appending 'T00:00:00' helps ensure correct date object creation from the input date string
+          const tDate = new Date(t.date + "T00:00:00");
+          if (
+            tDate.getMonth() === targetMonth &&
+            tDate.getFullYear() === targetYear
+          ) {
+            const dayKey = tDate.getDate(); // 1 to 31
+            const amount = parseFloat(t.amount);
+            if (!flows[dayKey]) {
+              flows[dayKey] = 0;
+            }
+            // Only count standard income/expense
+            if (t.type === "income" && !EXCLUDED_TYPES.includes(t.type)) {
+              flows[dayKey] += amount;
+            } else if (
+              t.type === "expense" &&
+              !EXCLUDED_TYPES.includes(t.type)
+            ) {
+              flows[dayKey] -= amount;
+            }
+          }
+        });
+        return flows;
+      };
+
+      /**
+       * Renders the financial calendar based on currentCalendarDate.
+       */
+      const renderCalendar = () => {
+        const calendarGrid = document.getElementById("calendar-grid");
+        const headerMonth = document.getElementById("calendar-header-month");
+        calendarGrid.innerHTML = "";
+
+        // 1. Setup Header
+        const monthName = currentCalendarDate.toLocaleString("en-US", {
+          month: "long",
+          year: "numeric",
+        });
+        headerMonth.textContent = monthName;
+
+        // 2. Setup Weekday Headers
+        const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        weekdays.forEach((day) => {
+          const header = document.createElement("div");
+          header.className = "font-bold text-gray-700 py-2 text-xs md:text-sm";
+          header.textContent = day;
+          calendarGrid.appendChild(header);
+        });
+
+        // 3. Calculate Monthly Flow Data
+        const dailyFlows = getDailyNetFlows(currentCalendarDate);
+
+        // 4. Determine days in month and start day
+        const firstDayOfMonth = new Date(
+          currentCalendarDate.getFullYear(),
+          currentCalendarDate.getMonth(),
+          1
+        );
+        const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 (Sun) to 6 (Sat)
+        const daysInMonth = new Date(
+          currentCalendarDate.getFullYear(),
+          currentCalendarDate.getMonth() + 1,
+          0
+        ).getDate();
+        const today = new Date();
+        const isCurrentMonth =
+          currentCalendarDate.getMonth() === today.getMonth() &&
+          currentCalendarDate.getFullYear() === today.getFullYear();
+
+        // 5. Render Blank Cells for padding
+        for (let i = 0; i < startingDayOfWeek; i++) {
+          const blankCell = document.createElement("div");
+          blankCell.className = "p-2";
+          calendarGrid.appendChild(blankCell);
+        }
+
+        // 6. Render Day Cells
+        for (let day = 1; day <= daysInMonth; day++) {
+          const netFlow = dailyFlows[day] || 0;
+          let cellClass = "bg-gray-100 text-gray-800"; // Neutral
+
+          if (netFlow > 0) {
+            cellClass =
+              "bg-green-100 text-green-800 font-semibold hover:bg-green-200"; // Income > Expense (Green)
+          } else if (netFlow < 0) {
+            cellClass =
+              "bg-red-100 text-red-800 font-semibold hover:bg-red-200"; // Expense > Income (Red)
+          } else {
+            cellClass = "bg-gray-100 text-gray-600 hover:bg-gray-200";
+          }
+
+          // Highlight today's date if viewing the current month
+          if (isCurrentMonth && day === today.getDate()) {
+            cellClass =
+              "bg-indigo-300 text-indigo-900 font-bold border-2 border-indigo-500 hover:bg-indigo-400";
+          }
+
+          const dayCell = document.createElement("div");
+          dayCell.className = `rounded-lg h-8 flex items-center justify-center cursor-default transition duration-100 text-xs ${cellClass}`;
+          dayCell.title = `Net Flow: ${formatCurrency(netFlow)}`;
+          dayCell.textContent = day;
+          calendarGrid.appendChild(dayCell);
+        }
+      };
+
+      /**
+       * Handles calendar month navigation.
+       */
+      const navigateMonth = (delta) => {
+        currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+        window.renderApp();
+      };
+
+      // --- RENDERING FUNCTIONS ---
+      /**
+       * Maps transaction type to display details (title, color, sign).
+       */
+      const getTransactionDisplayDetails = (transaction) => {
+        const t = transaction;
+        let sign = "";
+        let colorClass = "text-gray-600";
+        let categoryDisplay = t.category;
+
+        switch (t.type) {
+          case "income":
+            sign = "+";
+            colorClass = "text-green-600";
+            break;
+          case "expense":
+            sign = "-";
+            colorClass = "text-red-600";
+            break;
+          case "transfer_to_savings":
+            sign = "—"; // Short dash for neutral/transfer
+            colorClass = "text-blue-600";
+            categoryDisplay = `Transfer to Savings`;
+            break;
+          case "transfer_from_savings":
+            sign = "+"; // Positive to current balance
+            colorClass = "text-blue-600";
+            categoryDisplay = `Transfer from Savings`;
+            break;
+          case "liability_payment":
+            sign = "-";
+            colorClass = "text-red-600";
+            categoryDisplay = `Liability Payment: ${t.category}`;
+            break;
+          case "investment_purchase":
+            sign = "-";
+            colorClass = "text-yellow-600";
+            categoryDisplay = `Investment Purchase: ${t.category}`;
+            break;
+          case "transfer_surplus":
+            sign = "—";
+            colorClass = "text-indigo-600";
+            categoryDisplay = `Monthly Surplus Transfer`;
+            break;
+          default:
+            sign = t.type;
+            colorClass = "text-gray-600";
+        }
+        return { sign, colorClass, categoryDisplay };
+      };
+
+      /**
+       * Renders the chart for Budget vs. Expenses.
+       */
+      const renderBudgetChart = (monthlyBudget, monthlyExpenses) => {
+        const ctx = document.getElementById("budget-chart").getContext("2d");
+        if (budgetChartInstance) {
+          budgetChartInstance.destroy();
+        }
+
+        const data = [monthlyExpenses, monthlyBudget];
+        const colors = [
+          monthlyExpenses > monthlyBudget ? "#ef4444" : "#4f46e5", // Red if over, Indigo if under
+          "#e5e7eb", // Gray for budget background
+        ];
+
+        budgetChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: ["Current Expenses", "Monthly Budget"],
+            datasets: [
+              {
+                label: "Amount (₹)",
+                data: data,
+                backgroundColor: colors,
+                borderColor: colors.map((c) => c.replace("00", "50")), // Slightly darker border
+                borderWidth: 1,
+                borderRadius: 8,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: "y", // Horizontal bars
+            scales: {
+              x: {
+                beginAtZero: true,
+                grid: {
+                  display: false,
+                },
+              },
+              y: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  display: true,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    label += formatCurrency(context.parsed.x);
+                    return label;
+                  },
+                },
+              },
+            },
+          },
+        });
+      };
+
+      /**
+       * Renders the chart for Investment Comparison.
+       */
+      const renderInvestmentChart = () => {
+        const ctx = document
+          .getElementById("investment-chart")
+          .getContext("2d");
+        if (investmentChartInstance) {
+          investmentChartInstance.destroy();
+        }
+
+        const labels = settings.investments.map((i) => i.name);
+        const principalData = settings.investments.map((i) => i.principal);
+        const maturityData = settings.investments.map((i) => i.maturityValue);
+        const maxAmount = Math.max(...principalData, ...maturityData);
+        const suggestedMax = maxAmount * 1.1; // 10% padding
+
+        investmentChartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Principal Invested",
+                data: principalData,
+                backgroundColor: "rgba(251, 191, 36, 0.8)", // Yellow-500
+                borderColor: "rgb(251, 191, 36)",
+                borderWidth: 1,
+                borderRadius: 4,
+              },
+              {
+                label: "Maturity Value",
+                data: maturityData,
+                backgroundColor: "rgba(59, 130, 246, 0.8)", // Blue-500
+                borderColor: "rgb(59, 130, 246)",
+                borderWidth: 1,
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+              y: {
+                beginAtZero: true,
+                suggestedMax: suggestedMax,
+                ticks: {
+                  callback: function (value, index, values) {
+                    return formatCurrency(value);
+                  },
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: "top",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    label += formatCurrency(context.parsed.y);
+                    return label;
+                  },
+                },
+              },
+            },
+          },
+        });
+      };
+
+      /**
+       * Renders the list of transactions.
+       */
+      const renderTransactionHistory = () => {
+        const container = document.getElementById(
+          "transactions-list-container"
+        );
+        container.innerHTML = "";
+
+        if (settings.transactions.length === 0) {
+          container.innerHTML = `<p class="text-center text-gray-500 py-4">No transactions recorded yet.</p>`;
+          return;
+        }
+
+        // Sort by date (newest first)
+        const sortedTransactions = [...settings.transactions].sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        );
+
+        sortedTransactions.forEach((t) => {
+          const { sign, colorClass, categoryDisplay } =
+            getTransactionDisplayDetails(t);
+
+          const transactionElement = document.createElement("div");
+          transactionElement.className =
+            "flex justify-between items-center p-2 border-b border-gray-200 last:border-b-0 hover:bg-white transition duration-150 rounded-lg";
+
+          const dateDisplay = new Date(t.date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          });
+
+          transactionElement.innerHTML = `
+                  <div class="flex items-center space-x-3 min-w-0">
+                      <div class="flex-shrink-0 text-xs font-medium text-gray-500 w-10 text-center">${dateDisplay}</div>
+                      <div class="flex flex-col min-w-0">
+                          <span class="text-sm font-semibold truncate text-gray-800">${categoryDisplay}</span>
+                          <span class="text-xs text-gray-500 italic truncate">${
+                            t.notes || t.type
+                          }</span>
+                      </div>
+                  </div>
+                  <div class="flex items-center space-x-3">
+                      <span class="text-sm font-bold ${colorClass}">
+                          ${sign}${formatCurrency(t.amount)}
+                      </span>
+                      <button 
+                          data-id="${t.id}" 
+                          class="delete-transaction-btn p-1 rounded-full text-red-500 hover:bg-red-100 transition duration-150"
+                          title="Delete Transaction (Reverts Balance)"
+                      >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                      </button>
+                  </div>
+              `;
+          container.appendChild(transactionElement);
+        });
+      };
+
+      /**
+       * Renders the list of liabilities.
+       */
+      const renderLiabilitiesList = () => {
+        const container = document.getElementById("liabilities-list-container");
+        const liabilitySelect = document.getElementById("liability-to-pay");
+
+        container.innerHTML = "";
+        liabilitySelect.innerHTML =
+          '<option value="">-- Select a Liability --</option>'; // Reset select
+
+        if (settings.liabilities.length === 0) {
+          container.innerHTML = `<p class="text-center text-gray-500 py-4">No liabilities recorded yet. Great job!</p>`;
+          liabilitySelect.innerHTML =
+            '<option value="">-- No Liabilities Available --</option>';
+          return;
+        }
+
+        settings.liabilities.forEach((l) => {
+          const remainingAmount = l.amount;
+
+          // Render list item
+          const liabilityElement = document.createElement("div");
+          liabilityElement.className =
+            "flex justify-between items-center p-3 border-b border-gray-200 last:border-b-0 hover:bg-white transition duration-150 rounded-lg bg-red-50";
+          liabilityElement.innerHTML = `
+                  <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-red-800">${
+                        l.name
+                      }</span>
+                      <span class="text-xs text-gray-500">Total Owed</span>
+                  </div>
+                  <div class="text-sm font-bold text-red-700">
+                      ${formatCurrency(remainingAmount)}
+                  </div>
+              `;
+          container.appendChild(liabilityElement);
+
+          // Render select option
+          const option = document.createElement("option");
+          option.value = l.id;
+          option.textContent = `${l.name} (${formatCurrency(
+            remainingAmount
+          )} remaining)`;
+          liabilitySelect.appendChild(option);
+        });
+      };
+
+      /**
+       * Renders the list of investments.
+       */
+      const renderInvestmentsList = () => {
+        const container = document.getElementById("investments-list-container");
+        container.innerHTML = "";
+
+        if (settings.investments.length === 0) {
+          container.innerHTML = `<p class="text-center text-gray-500 py-4">No investments recorded yet.</p>`;
+          return;
+        }
+
+        settings.investments.forEach((i) => {
+          const maturityAmount = calculateMaturityValue(
+            i.principal,
+            i.rate,
+            i.periodYears,
+            i.interestType,
+            i.compoundingFreq
+          );
+          const totalGain = maturityAmount - i.principal;
+          const gainPercent = (totalGain / i.principal) * 100;
+          const gainClass = totalGain >= 0 ? "text-green-600" : "text-red-600";
+
+          const periodDisplay = `${i.periodAmount} ${i.periodUnit}`;
+
+          const investmentElement = document.createElement("div");
+          investmentElement.className =
+            "bg-white p-3 rounded-xl border border-gray-200 shadow-sm";
+          investmentElement.innerHTML = `
+                  <div class="flex justify-between items-start mb-2">
+                      <h4 class="text-base font-bold text-yellow-800">${
+                        i.name
+                      } (${i.instrument})</h4>
+                      <button 
+                          data-id="${i.id}" 
+                          class="delete-investment-btn p-1 rounded-full text-red-500 hover:bg-red-100 transition duration-150"
+                          title="Delete Investment (Refunds Principal)"
+                      >
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                      </button>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-sm">
+                      <p class="font-medium text-gray-500">Principal:</p>
+                      <p class="font-semibold text-gray-800">${formatCurrency(
+                        i.principal
+                      )}</p>
+
+                      <p class="font-medium text-gray-500">Maturity Value:</p>
+                      <p class="font-semibold text-blue-700">${formatCurrency(
+                        maturityAmount
+                      )}</p>
+
+                      <p class="font-medium text-gray-500">Total Gain:</p>
+                      <p class="font-semibold ${gainClass}">${formatCurrency(
+            totalGain
+          )} (${gainPercent.toFixed(2)}%)</p>
+                      
+                      <p class="font-medium text-gray-500">Rate/Period:</p>
+                      <p class="text-gray-800">${
+                        i.rate
+                      }% over ${periodDisplay}</p>
+                  </div>
+              `;
+          container.appendChild(investmentElement);
+        });
+
+        renderInvestmentChart();
+      };
+
+      /**
+       * Main rendering function for the entire application.
+       */
+      window.renderApp = () => {
+        // 1. RENDER OVERVIEW TAB
+        const netWorth = calculateNetWorth();
+        document.getElementById("net-worth-value").textContent =
+          formatCurrency(netWorth);
+        document.getElementById("current-balance-display").textContent =
+          formatCurrency(settings.currentBalance);
+        document.getElementById("savings-balance-display").textContent =
+          formatCurrency(settings.savingsBalance);
+        document.getElementById(
+          "current-savings-balance-display-2"
+        ).textContent = formatCurrency(settings.savingsBalance); // For budget tab
+
+        // Daily & Monthly Totals
+        const todayTotals = getCurrentPeriodTotals("day", new Date());
+        document.getElementById("daily-income-display").textContent =
+          formatCurrency(todayTotals.income);
+        document.getElementById("daily-expenses-display").textContent =
+          formatCurrency(todayTotals.expenses);
+
+        const monthTotals = getCurrentPeriodTotals("month", new Date());
+        document.getElementById("monthly-income-display").textContent =
+          formatCurrency(monthTotals.income);
+        document.getElementById("monthly-expenses-display").textContent =
+          formatCurrency(monthTotals.expenses);
+
+        // Goal Display
+        const goalNameDisplay = document.getElementById("goal-name-display");
+        const goalValueDisplay = document.getElementById("goal-value-display");
+        const goalComparison = document.getElementById("goal-comparison");
+        if (settings.financialGoal.isSet) {
+          goalNameDisplay.textContent = settings.financialGoal.name;
+          goalValueDisplay.textContent = formatCurrency(
+            settings.financialGoal.amount
+          );
+          const difference = settings.financialGoal.amount - netWorth;
+          if (difference > 0) {
+            goalComparison.innerHTML = `<span class="font-bold text-red-700">${formatCurrency(
+              difference
+            )}</span> to go to reach your goal.`;
+          } else {
+            goalComparison.innerHTML = `<span class="font-bold text-green-700">Goal achieved!</span> You are over the target by ${formatCurrency(
+              difference * -1
+            )}.`;
+          }
+        } else {
+          goalNameDisplay.textContent = "No Goal Set";
+          goalValueDisplay.textContent = formatCurrency(0);
+          goalComparison.textContent = "";
+        }
+
+        // Work-to-Buy Calculator Display (NEW)
+        const hourlyWage = calculateHourlyWage();
+        const { monthlySalary, workingDaysPerMonth, workingHoursPerDay } =
+          settings.salarySettings;
+
+        // Set input values from settings
+        document.getElementById("input-monthly-salary").value =
+          monthlySalary > 0 ? monthlySalary : "";
+        document.getElementById("input-working-days").value =
+          workingDaysPerMonth > 0 ? workingDaysPerMonth : "";
+        document.getElementById("input-working-hours").value =
+          workingHoursPerDay > 0 ? workingHoursPerDay : "";
+
+        // Display the calculated hourly wage
+        document.getElementById(
+          "hourly-wage-display"
+        ).textContent = `${formatCurrency(hourlyWage)}/hr`;
+
+        // Trigger hours needed calculation with current cost (if any)
+        handleWorkToBuyCalculation();
+
+        // Budget Display
+        const monthlyExpenses = monthTotals.expenses;
+        const monthlyBudget = settings.monthlyBudget;
+        if (monthlyBudget > 0 && monthlyExpenses > monthlyBudget) {
+          document
+            .getElementById("budget-exceeded-warning")
+            .classList.remove("hidden");
+        } else {
+          document
+            .getElementById("budget-exceeded-warning")
+            .classList.add("hidden");
+        }
+        renderBudgetChart(monthlyBudget, monthlyExpenses);
+        renderCalendar();
+
+        // 2. RENDER TRANSACTIONS TAB
+        renderTransactionHistory();
+
+        // 3. RENDER BUDGET & SAVINGS TAB
+        renderLiabilitiesList();
+
+        // 4. RENDER INVESTMENTS TAB
+        renderInvestmentsList();
+      };
+
+      // --- FORM HANDLERS (MODIFIED/NEW) ---
+
+      // NEW: Handlers for Work-to-Buy Calculator
+      const updateSalarySettingsAndCalculateWage = async () => {
+        const monthlySalary =
+          parseFloat(document.getElementById("input-monthly-salary").value) ||
+          0;
+        const workingDaysPerMonth =
+          parseFloat(document.getElementById("input-working-days").value) || 0;
+        const workingHoursPerDay =
+          parseFloat(document.getElementById("input-working-hours").value) || 0;
+
+        await updateSettings({
+          salarySettings: {
+            monthlySalary,
+            workingDaysPerMonth,
+            workingHoursPerDay,
+          },
+        });
+        // renderApp is called by updateSettings, which updates the hourly wage display.
+        // Now, trigger the hours needed calculation in case a product cost is already entered.
+        handleWorkToBuyCalculation();
+      };
+
+      const handleWorkToBuyCalculation = () => {
+        const productCostInput = document.getElementById("input-product-cost");
+        const hoursNeededDisplay = document.getElementById(
+          "hours-needed-display"
+        );
+        const daysNeededDisplay = document.getElementById(
+          "days-needed-display"
+        );
+
+        const productCost = parseFloat(productCostInput.value) || 0;
+        const hourlyWage = calculateHourlyWage();
+        const { workingHoursPerDay } = settings.salarySettings;
+
+        if (productCost <= 0 || hourlyWage <= 0) {
+          hoursNeededDisplay.textContent = "0.00 hrs";
+          daysNeededDisplay.textContent = "";
+          return;
+        }
+
+        const hoursNeeded = productCost / hourlyWage;
+        const daysNeeded =
+          workingHoursPerDay > 0 ? hoursNeeded / workingHoursPerDay : 0;
+
+        hoursNeededDisplay.textContent = `${hoursNeeded.toFixed(2)} hrs`;
+        if (workingHoursPerDay > 0 && daysNeeded >= 1) {
+          daysNeededDisplay.textContent = `(Approx. ${daysNeeded.toFixed(
+            1
+          )} working days)`;
+        } else if (workingHoursPerDay > 0 && daysNeeded > 0) {
+          daysNeededDisplay.textContent = `(Less than one working day)`;
+        } else {
+          daysNeededDisplay.textContent = "";
+        }
+      };
+      // END NEW: Work-to-Buy Handlers
+
+      // Transaction Form Handler
+      document
+        .getElementById("transaction-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const amount = parseFloat(
+            document.getElementById("transaction-amount").value
+          );
+          const type = document.getElementById("transaction-type").value;
+          const category = document.getElementById(
+            "transaction-category"
+          ).value;
+          const date = document.getElementById("transaction-date").value;
+
+          let newBalance = settings.currentBalance;
+          if (type === "income") {
+            newBalance += amount;
+          } else if (type === "expense") {
+            if (newBalance < amount) {
+              showMessage(
+                "Error: Insufficient funds in Current Balance.",
+                "error"
+              );
+              return;
+            }
+            newBalance -= amount;
+          }
+
+          addTransactionRecord(type, amount, category, "", date);
+
+          await updateSettings({ currentBalance: newBalance });
+
+          e.target.reset();
+          document.getElementById("transaction-date").value = formatDate(
+            new Date()
+          ); // Reset date after submit
+          showMessage(
+            `✅ ${
+              type.charAt(0).toUpperCase() + type.slice(1)
+            } of ${formatCurrency(amount)} recorded successfully!`,
+            "success"
+          );
+        });
+
+      // Budget Form Handler
+      document
+        .getElementById("budget-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const budget = parseFloat(
+            document.getElementById("monthly-budget-input").value
+          );
+          await updateSettings({ monthlyBudget: budget });
+          showMessage(
+            `✅ Monthly budget set to ${formatCurrency(budget)}.`,
+            "success"
+          );
+        });
+
+      // Savings Management Form Handler
+      document
+        .getElementById("savings-management-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const transferAmount = parseFloat(
+            document.getElementById("savings-transfer-amount").value
+          );
+          const transferType = document.getElementById(
+            "savings-transfer-type"
+          ).value;
+
+          if (transferType === "deposit") {
+            if (settings.currentBalance < transferAmount) {
+              showMessage(
+                "Error: Insufficient funds in Current Balance.",
+                "error"
+              );
+              return;
+            }
+            await updateSettings({
+              currentBalance: settings.currentBalance - transferAmount,
+              savingsBalance: settings.savingsBalance + transferAmount,
+            });
+            addTransactionRecord(
+              "transfer_to_savings",
+              transferAmount,
+              "Savings Deposit",
+              "Transfer from Current Balance to Savings.",
+              formatDate(new Date())
+            );
+            showMessage(
+              `✅ ${formatCurrency(transferAmount)} deposited to Savings.`,
+              "success"
+            );
+          } else if (transferType === "withdrawal") {
+            if (settings.savingsBalance < transferAmount) {
+              showMessage("Error: Insufficient funds in Savings.", "error");
+              return;
+            }
+            await updateSettings({
+              currentBalance: settings.currentBalance + transferAmount,
+              savingsBalance: settings.savingsBalance - transferAmount,
+            });
+            addTransactionRecord(
+              "transfer_from_savings",
+              transferAmount,
+              "Savings Withdrawal",
+              "Transfer from Savings to Current Balance.",
+              formatDate(new Date())
+            );
+            showMessage(
+              `✅ ${formatCurrency(transferAmount)} withdrawn from Savings.`,
+              "success"
+            );
+          } else if (transferType === "payLiability") {
+            const liabilityId =
+              document.getElementById("liability-to-pay").value;
+            const liability = settings.liabilities.find(
+              (l) => l.id == liabilityId
+            );
+
+            if (!liability) {
+              showMessage("Error: Select a valid liability.", "error");
+              return;
+            }
+            if (transferAmount > settings.savingsBalance) {
+              showMessage("Error: Insufficient funds in Savings.", "error");
+              return;
+            }
+
+            const amountPaid = Math.min(transferAmount, liability.amount);
+
+            // 1. Decrease Asset (Savings)
+            const newSavingsBalance = settings.savingsBalance - amountPaid;
+
+            // 2. Decrease Liability
+            const newLiabilities = settings.liabilities
+              .map((l) => {
+                if (l.id == liabilityId) {
+                  return { ...l, amount: l.amount - amountPaid };
+                }
+                return l;
+              })
+              .filter((l) => l.amount > 0.01); // Remove if nearly zero
+
+            // 3. Add Transaction Record
+            addTransactionRecord(
+              "liability_payment",
+              amountPaid,
+              liability.name,
+              `Payment made to liability from Savings.`,
+              formatDate(new Date())
+            );
+
+            await updateSettings({
+              savingsBalance: newSavingsBalance,
+              liabilities: newLiabilities,
+            });
+            showMessage(
+              `✅ Successfully paid ${formatCurrency(amountPaid)} towards ${
+                liability.name
+              } from Savings.`,
+              "success"
+            );
+          }
+          e.target.reset();
+          // Force renderLiabilitiesList to re-populate the selection dropdown
+          window.renderApp();
+        });
+
+      // LIABILITY FORM SUBMIT HANDLER (FIXED)
+      document
+        .getElementById("liability-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("liability-name").value;
+          const amount = parseFloat(
+            document.getElementById("liability-amount").value
+          );
+
+          const newLiability = {
+            id: Date.now() + Math.random(),
+            name,
+            amount: amount,
+          };
+
+          // FIX: Increase currentBalance by the liability amount (assuming it's a loan received as cash)
+          const newCurrentBalance = settings.currentBalance + amount;
+
+          // Record the liability/loan as an income transaction
+          addTransactionRecord(
+            "income",
+            amount,
+            "Loan/Liability Received",
+            `Funds received from new liability: ${name}. Net Worth will remain neutral.`,
+            formatDate(new Date())
+          );
+
+          await updateSettings({
+            liabilities: [...settings.liabilities, newLiability],
+            currentBalance: newCurrentBalance,
+          });
+          e.target.reset();
+          showMessage(
+            `✅ Liability "${name}" of ${formatCurrency(
+              amount
+            )} added. Current Balance increased to reflect loan funds.`,
+            "success"
+          );
+        });
+
+      // Investment Form Handler
+      document
+        .getElementById("investment-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("investment-name").value;
+          const instrument = document.getElementById(
+            "investment-instrument"
+          ).value;
+          const principal = parseFloat(
+            document.getElementById("investment-amount").value
+          );
+          const rate = parseFloat(
+            document.getElementById("investment-rate").value
+          );
+          const periodAmount = parseFloat(
+            document.getElementById("investment-period-amount").value
+          );
+          const periodUnit = document.getElementById(
+            "investment-period-unit"
+          ).value;
+          const interestType = document.getElementById("interest-type").value;
+          const compoundingFreq = document.getElementById(
+            "compounding-frequency"
+          ).value;
+
+          // Convert period to years for calculation (t must be in years)
+          let periodYears = periodAmount;
+          if (periodUnit === "months") {
+            periodYears = periodAmount / 12;
+          } else if (periodUnit === "days") {
+            periodYears = periodAmount / 365;
+          }
+
+          if (settings.currentBalance < principal) {
+            showMessage(
+              "Error: Insufficient funds in Current Balance for this investment.",
+              "error"
+            );
+            return;
+          }
+
+          const maturityValue = calculateMaturityValue(
+            principal,
+            rate,
+            periodYears,
+            interestType,
+            compoundingFreq
+          );
+
+          const newInvestment = {
+            id: Date.now() + Math.random(),
+            name,
+            instrument,
+            principal,
+            rate,
+            periodAmount,
+            periodUnit,
+            periodYears,
+            interestType,
+            compoundingFreq,
+            maturityValue,
+          };
+
+          // 1. Deduct principal from Current Balance
+          const newCurrentBalance = settings.currentBalance - principal;
+
+          // 2. Record as special transaction (expense)
+          addTransactionRecord(
+            "investment_purchase",
+            principal,
+            instrument,
+            name,
+            formatDate(new Date())
+          );
+
+          await updateSettings({
+            investments: [...settings.investments, newInvestment],
+            currentBalance: newCurrentBalance,
+          });
+
+          e.target.reset();
+          document.getElementById("interest-type").value = "simple"; // Reset dropdowns
+          document
+            .getElementById("compounding-frequency-group")
+            .classList.add("hidden");
+          showMessage(
+            `✅ Investment "${name}" added. Maturity Value: ${formatCurrency(
+              maturityValue
+            )}.`,
+            "success"
+          );
+        });
+
+      // Goal Form Handler
+      document
+        .getElementById("financial-goal-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("goal-name-input").value;
+          const amount = parseFloat(
+            document.getElementById("goal-amount-input").value
+          );
+
+          await updateSettings({
+            financialGoal: {
+              name,
+              amount,
+              isSet: true,
+            },
+          });
+          document
+            .getElementById("goal-form-container")
+            .classList.add("hidden");
+          showMessage(`✅ Financial Goal "${name}" set!`, "success");
+        });
+
+      // --- EVENT LISTENERS (MODIFIED/NEW) ---
+
+      // Salary Input Listeners (NEW)
+      document
+        .getElementById("input-monthly-salary")
+        .addEventListener("input", updateSalarySettingsAndCalculateWage);
+      document
+        .getElementById("input-working-days")
+        .addEventListener("input", updateSalarySettingsAndCalculateWage);
+      document
+        .getElementById("input-working-hours")
+        .addEventListener("input", updateSalarySettingsAndCalculateWage);
+
+      // Product Cost Input Listener (NEW)
+      document
+        .getElementById("input-product-cost")
+        .addEventListener("input", handleWorkToBuyCalculation);
+
+      // Tab Switching
+      document.querySelectorAll(".tab-btn").forEach((button) => {
+        button.addEventListener("click", (e) => {
+          // Ensure we get the button element even if the click is on the icon or span
+          const targetButton = e.target.closest(".tab-btn");
+          if (!targetButton) return;
+
+          const tab = targetButton.getAttribute("data-tab");
+          activeTab = tab;
+          document
+            .querySelectorAll('section[id$="-content"]')
+            .forEach((section) => {
+              section.classList.add("hidden");
+            });
+          document.getElementById(`${tab}-content`).classList.remove("hidden");
+
+          document.querySelectorAll(".tab-btn").forEach((btn) => {
+            btn.classList.remove("border-indigo-600", "text-indigo-700");
+            btn.classList.add("border-transparent", "text-gray-600");
+          });
+          targetButton.classList.remove("border-transparent", "text-gray-600");
+          targetButton.classList.add("border-indigo-600", "text-indigo-700");
+
+          // Re-render chart/calendar on tab switch to fix rendering issues
+          window.renderApp();
+        });
+      });
+
+      // Goal Button Toggle
+      document.getElementById("set-goal-btn").addEventListener("click", () => {
+        document
+          .getElementById("goal-form-container")
+          .classList.toggle("hidden");
+      });
+
+      // Calendar Navigation
+      document
+        .getElementById("prev-month-btn")
+        .addEventListener("click", () => navigateMonth(-1));
+      document
+        .getElementById("next-month-btn")
+        .addEventListener("click", () => navigateMonth(1));
+
+      // Investment Compounding Toggle Listener
+      document
+        .getElementById("interest-type")
+        .addEventListener("change", (e) => {
+          const frequencyGroup = document.getElementById(
+            "compounding-frequency-group"
+          );
+          if (e.target.value === "compound") {
+            frequencyGroup.classList.remove("hidden");
+          } else {
+            frequencyGroup.classList.add("hidden");
+          }
+        });
+
+      // Savings Management Toggle Listener
+      document
+        .getElementById("savings-transfer-type")
+        .addEventListener("change", (e) => {
+          const liabilityGroup = document.getElementById(
+            "liability-selection-group"
+          );
+          if (e.target.value === "payLiability") {
+            liabilityGroup.classList.remove("hidden");
+          } else {
+            liabilityGroup.classList.add("hidden");
+          }
+        });
+
+      // DELETION EVENT DELEGATION (NEW)
+      document
+        .getElementById("transactions-list-container")
+        .addEventListener("click", (e) => {
+          const deleteBtn = e.target.closest(".delete-transaction-btn");
+          if (deleteBtn) {
+            const id = parseFloat(deleteBtn.getAttribute("data-id"));
+            if (
+              confirm(
+                "Are you sure you want to delete this transaction and revert the balance change?"
+              )
+            ) {
+              deleteTransaction(id);
+            }
+          }
+        });
+
+      document
+        .getElementById("investments-list-container")
+        .addEventListener("click", (e) => {
+          const deleteBtn = e.target.closest(".delete-investment-btn");
+          if (deleteBtn) {
+            const id = parseFloat(deleteBtn.getAttribute("data-id"));
+            if (
+              confirm(
+                "Are you sure you want to delete this investment? The principal amount will be refunded to your Current Balance."
+              )
+            ) {
+              deleteInvestment(id);
+            }
+          }
+        });
+
+      /**
+       * Loads data, initializes the app.
+       */
+      const loadAndInitializeApp = async () => {
+        loadSettings();
+        await checkAndPerformMonthlyReset(); // Check for and perform monthly reset/transfer
+        window.renderApp();
+      };
+
+      // Initial app setup - Using Local Storage
+      loadAndInitializeApp();
+      // --- END OF APPLICATION LOGIC ---
+    </script>
+  </body>
+</html>
